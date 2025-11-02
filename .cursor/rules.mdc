@@ -1,0 +1,22 @@
+---
+alwaysApply: true
+---
+
+# Cursor ルール
+
+## ワークフロー基本方針
+- 実装前に必ずGitHub Issueを作成し、課題概要・背景・受け入れ条件を記載する。
+- 作業開始時にIssueへ「着手します」等のコメントを残す。
+- `feature/<issue-number>-<short-slug>` 形式でIssue番号を含むブランチを作成する。
+- コミットメッセージにはIssue番号を含め、PR本文には `close #<issue-number>` を記載してIssueと紐付ける。
+- 動作確認・テスト結果をPRにまとめ、レビュー対応後にマージする。
+
+## Atomicデザイン規約
+- `src/components` 配下は `atoms` / `molecules` / `organisms` / `templates` / `pages` に分類し、責務と再利用性に応じて配置する。
+- コンポーネント名はPascalCaseとし、関連するStorybookファイルやテストファイルは同じ階層に置く。
+- Atomsはデザインシステムの最小単位、MoleculesはAtomsの組み合わせ、OrganismsはUIセクション、Templatesはページレイアウト、Pagesは具体的なページ実装とする。
+
+## Composable・ストア利用方針
+- データ取得や集計などのビジネスロジックは `src/composables` に切り出し、UI層から直接データソースへアクセスしない。
+- Piniaストアはグローバル状態・設定値の共有に限定し、Composableで副作用を管理してテストしやすさを確保する。
+
