@@ -25,7 +25,7 @@ dist/
 build/
 *.log
 
-spotifyHistoryData/
+# spotifyHistoryData/
 # Optional: Keep data directory but ignore large JSON files if needed
 # spotifyHistoryData/*.json
 

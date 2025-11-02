@@ -1,10 +1,16 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { SpotifyHistoryItem, ProcessedData, FilterSettings } from '@/types'
+import type {
+  SpotifyHistoryItem,
+  ProcessedData,
+  FilterSettings,
+  SpotifyHistoryData,
+} from '@/types'
 
 export const useDataStore = defineStore('data', () => {
   const rawData = ref<SpotifyHistoryItem[]>([])
   const processedData = ref<ProcessedData | null>(null)
+  const dataSources = ref<SpotifyHistoryData[]>([])
   const filters = ref<FilterSettings>({
     dateRange: {
       start: null,
@@ -23,6 +29,7 @@ export const useDataStore = defineStore('data', () => {
   return {
     rawData,
     processedData,
+    dataSources,
     filters,
     isLoading,
     error,
