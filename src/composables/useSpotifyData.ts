@@ -22,20 +22,50 @@ const toFileName = (filePath: string): string => {
 }
 
 const normalizeItems = (items: SpotifyHistoryItem[]): SpotifyHistoryItem[] =>
-  items.filter((item) =>
-    Boolean(
-      item &&
-        typeof item === 'object' &&
-        typeof item.ts === 'string' &&
-        !Number.isNaN(Date.parse(item.ts)) &&
-        item.ms_played > 0
+  items
+    .filter((item) =>
+      Boolean(
+        item &&
+          typeof item === 'object' &&
+          typeof item.ts === 'string' &&
+          !Number.isNaN(Date.parse(item.ts)) &&
+          typeof item.ms_played === 'number' &&
+          item.ms_played > 0
+      )
     )
-  )
+    .map((item) => ({
+      ...item,
+      ms_played: Math.floor(item.ms_played),
+    }))
+
+const dedupeItems = (items: SpotifyHistoryItem[]): SpotifyHistoryItem[] => {
+  const seen = new Set<string>()
+  const deduped: SpotifyHistoryItem[] = []
+
+  items.forEach((item) => {
+    const key = [
+      item.ts,
+      item.master_metadata_track_name ?? '',
+      item.master_metadata_album_artist_name ?? '',
+      item.ms_played,
+    ].join('::')
+
+    if (!seen.has(key)) {
+      seen.add(key)
+      deduped.push(item)
+    }
+  })
+
+  return deduped
+}
 
 const sortByTimestamp = (items: SpotifyHistoryItem[]): SpotifyHistoryItem[] =>
-  [...items].sort(
-    (a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime()
-  )
+  [...items].sort((a, b) => Date.parse(a.ts) - Date.parse(b.ts))
+
+interface LoadedHistoryData {
+  sourcePath: string
+  data: SpotifyHistoryData
+}
 
 export function useSpotifyData() {
   const dataStore = useDataStore()
@@ -45,42 +75,83 @@ export function useSpotifyData() {
     dataStore.error = null
 
     try {
-      const loadedModules = await Promise.all(
-        Object.entries(historyFileImporters).map(async ([filePath, importer]) => {
-          const module = await importer()
-          const items = Array.isArray(module?.default)
-            ? module.default
-            : []
+      const importerEntries = Object.entries(historyFileImporters)
 
-          const normalized = normalizeItems(items)
+      if (importerEntries.length === 0) {
+        throw new Error('Spotify履歴データの読み込み対象が見つかりません。')
+      }
 
-          const historyData: SpotifyHistoryData = {
-            items: normalized,
-            source: toFileName(filePath),
-            loadedAt: new Date(),
+      const results = await Promise.all(
+        importerEntries.map(async ([filePath, importer]) => {
+          try {
+            const module = await importer()
+            const items = Array.isArray(module?.default) ? module.default : []
+
+            const normalized = normalizeItems(items)
+
+            const historyData: SpotifyHistoryData = {
+              items: normalized,
+              source: toFileName(filePath),
+              sourcePath: filePath,
+              loadedAt: new Date(),
+            }
+
+            return {
+              status: 'fulfilled' as const,
+              sourcePath: filePath,
+              data: historyData,
+            }
+          } catch (error) {
+            return {
+              status: 'rejected' as const,
+              sourcePath: filePath,
+              reason: error,
+            }
           }
-
-          return historyData
         })
       )
 
-      if (loadedModules.length === 0) {
-        throw new Error('Spotify履歴データが見つかりません。')
+      const fulfilled = results.filter(
+        (result): result is LoadedHistoryData & { status: 'fulfilled' } =>
+          result.status === 'fulfilled'
+      )
+      const rejected = results.filter(
+        (result): result is { status: 'rejected'; sourcePath: string; reason: unknown } =>
+          result.status === 'rejected'
+      )
+
+      if (!fulfilled.length) {
+        const firstReason = rejected[0]?.reason
+        if (firstReason instanceof Error) {
+          throw firstReason
+        }
+        throw new Error('Spotify履歴データの読み込みに失敗しました。')
       }
-      
 
       const mergedItems = sortByTimestamp(
-        loadedModules.flatMap((module) => module.items)
+        dedupeItems(fulfilled.flatMap((entry) => entry.data.items))
       )
 
       dataStore.rawData = mergedItems
-      dataStore.processedData = null
-      dataStore.dataSources = loadedModules
-      dataStore.error = null
+      dataStore.dataSources = fulfilled.map((entry) => entry.data)
+
+      if (rejected.length) {
+        const messages = rejected.map(({ sourcePath, reason }) => {
+          const fileName = toFileName(sourcePath)
+          if (reason instanceof Error) {
+            return `${fileName}: ${reason.message}`
+          }
+          return `${fileName}: 読み込み時に不明なエラーが発生しました。`
+        })
+        dataStore.error = `一部の履歴データの読み込みに失敗しました。\n${messages.join('\n')}`
+      } else {
+        dataStore.error = null
+      }
 
       return {
         items: mergedItems,
-        sources: loadedModules,
+        sources: fulfilled.map((entry) => entry.data),
+        failedSources: rejected.map((entry) => toFileName(entry.sourcePath)),
       }
     } catch (error) {
       const message =
@@ -89,7 +160,6 @@ export function useSpotifyData() {
           : 'Spotify履歴データの読み込みに失敗しました。'
 
       dataStore.rawData = []
-      dataStore.processedData = null
       dataStore.dataSources = []
       dataStore.error = message
 

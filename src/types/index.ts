@@ -51,6 +51,7 @@ export interface SpotifyHistoryItem {
 export interface SpotifyHistoryData {
   items: SpotifyHistoryItem[];
   source: string; // ファイル名またはAPIソース
+  sourcePath: string;
   loadedAt: Date;
 }
 
