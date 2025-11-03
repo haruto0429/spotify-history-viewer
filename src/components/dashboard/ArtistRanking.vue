@@ -21,40 +21,55 @@
       </span>
     </header>
 
-    <div v-if="artists.length" class="mt-6 space-y-4">
-      <button
-        v-for="artist in artists"
-        :key="artist.name"
-        type="button"
-        class="group w-full rounded-xl border border-spotify-border/60 bg-spotify-dark p-4 text-left transition hover:border-spotify-green/70 focus:border-spotify-green/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-spotify-green/60"
-      >
-        <div class="flex items-start gap-4">
-          <span
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-spotify-green/15 text-sm font-bold text-spotify-green group-hover:bg-spotify-green/25"
-          >
-            {{ artist.rank }}
-          </span>
+    <template v-if="artists.length">
+      <div class="mt-6 space-y-4">
+        <button
+          v-for="artist in artists"
+          :key="artist.name"
+          type="button"
+          class="group w-full rounded-xl border border-spotify-border/60 bg-spotify-dark p-4 text-left transition hover:border-spotify-green/70 focus:border-spotify-green/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-spotify-green/60"
+        >
+          <div class="flex items-start gap-4">
+            <span
+              class="flex h-10 w-10 items-center justify-center rounded-full bg-spotify-green/15 text-sm font-bold text-spotify-green group-hover:bg-spotify-green/25"
+            >
+              {{ artist.rank }}
+            </span>
 
-          <div class="flex-1">
-            <div class="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
-              <p class="text-lg font-semibold text-white">{{ artist.name }}</p>
-              <p class="text-sm text-spotify-text-secondary">
-                {{ artist.playCount.toLocaleString() }} 回再生 · {{ artist.totalTimeLabel }} · {{
-                  artist.trackCount.toLocaleString()
-                }} 曲
-              </p>
-            </div>
+            <div class="flex-1">
+              <div class="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
+                <p class="text-lg font-semibold text-white">{{ artist.name }}</p>
+                <p class="text-sm text-spotify-text-secondary">
+                  {{ artist.playCount.toLocaleString() }} 回再生 · {{ artist.totalTimeLabel }} · {{
+                    artist.trackCount.toLocaleString()
+                  }} 曲
+                </p>
+              </div>
 
-            <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-spotify-border/40">
-              <span
-                class="block h-full origin-left rounded-full bg-spotify-green transition-transform duration-300 group-hover:scale-x-[1.02]"
-                :style="{ width: `${artist.progress}%` }"
-              />
+              <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-spotify-border/40">
+                <span
+                  class="block h-full origin-left rounded-full bg-spotify-green transition-transform duration-300 group-hover:scale-x-[1.02]"
+                  :style="{ width: `${artist.progress}%` }"
+                />
+              </div>
             </div>
           </div>
-        </div>
-      </button>
-    </div>
+        </button>
+      </div>
+
+      <div v-if="hasMore" class="mt-6 flex justify-center">
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-full border border-spotify-border/60 bg-spotify-dark px-5 py-2 text-sm font-semibold text-spotify-text-secondary transition hover:border-spotify-green/60 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-spotify-green/60"
+          @click="showMore"
+        >
+          もっと見る
+          <span class="text-xs text-spotify-text-muted">
+            +{{ nextBatchCount.toLocaleString() }}件
+          </span>
+        </button>
+      </div>
+    </template>
     <p v-else class="mt-6 rounded-xl border border-spotify-border/60 bg-spotify-dark p-6 text-sm text-spotify-text-secondary">
       集計可能なアーティストデータがまだありません。
     </p>
@@ -62,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useDataStore } from '@/stores/dataStore'
 import { formatHoursAndMinutes } from '@/utils/formatters'
@@ -70,17 +85,32 @@ import { formatHoursAndMinutes } from '@/utils/formatters'
 const dataStore = useDataStore()
 const { processedData } = storeToRefs(dataStore)
 
+const VISIBLE_STEP = 10
+const MAX_ITEMS = 50
+
 const topArtists = computed(() => {
   const artists = processedData.value?.artists ?? []
-  return artists.slice(0, 10)
+  return artists.slice(0, MAX_ITEMS)
 })
 
-const maxPlayCount = computed(() => {
-  return topArtists.value.reduce((max, artist) => Math.max(max, artist.playCount), 0)
-})
+const visibleCount = ref(0)
+
+watch(
+  () => topArtists.value.length,
+  (length) => {
+    visibleCount.value = length === 0 ? 0 : Math.min(VISIBLE_STEP, length)
+  },
+  { immediate: true }
+)
+
+const displayedArtistsPool = computed(() => topArtists.value.slice(0, visibleCount.value))
+
+const maxPlayCount = computed(() =>
+  topArtists.value.reduce((max, artist) => Math.max(max, artist.playCount), 0)
+)
 
 const artists = computed(() => {
-  const base = topArtists.value
+  const base = displayedArtistsPool.value
   if (!base.length) {
     return [] as Array<{
       rank: number
@@ -103,5 +133,23 @@ const artists = computed(() => {
     progress: Math.min(100, Math.max(12, Math.round((artist.playCount / max) * 100))),
   }))
 })
+
+const hasMore = computed(() => topArtists.value.length > displayedArtistsPool.value.length)
+
+const remainingCount = computed(() =>
+  Math.max(0, Math.min(topArtists.value.length, MAX_ITEMS) - displayedArtistsPool.value.length)
+)
+
+const nextBatchCount = computed(() => Math.min(VISIBLE_STEP, remainingCount.value))
+
+const showMore = () => {
+  if (!hasMore.value) {
+    return
+  }
+  visibleCount.value = Math.min(
+    visibleCount.value + VISIBLE_STEP,
+    Math.min(topArtists.value.length, MAX_ITEMS)
+  )
+}
 </script>
 
