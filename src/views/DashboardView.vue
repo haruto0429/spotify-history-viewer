@@ -64,6 +64,7 @@
 
         <template v-if="hasData">
           <StatsOverview />
+          <ArtistRanking />
 
           <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             <div class="rounded-xl border border-spotify-border bg-spotify-dark-secondary p-6 shadow-lg shadow-black/30">
@@ -111,6 +112,7 @@ import { computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useSpotifyData } from '@/composables/useSpotifyData'
 import StatsOverview from '@/components/dashboard/StatsOverview.vue'
+import ArtistRanking from '@/components/dashboard/ArtistRanking.vue'
 import { useDataStore } from '@/stores/dataStore'
 
 const dataStore = useDataStore()
