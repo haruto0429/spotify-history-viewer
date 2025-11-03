@@ -66,52 +66,7 @@
           <div class="space-y-10">
             <StatsOverview />
 
-            <section class="grid gap-6 lg:grid-cols-3">
-              <article
-                class="rounded-2xl border border-spotify-border/70 bg-spotify-dark-secondary/80 p-6 text-white shadow-lg shadow-black/40 backdrop-blur-sm"
-              >
-                <h2 class="text-sm font-semibold uppercase tracking-[0.3em] text-spotify-text-muted">
-                  ハイライト
-                </h2>
-                <dl class="mt-6 space-y-4 text-sm text-spotify-text-secondary">
-                  <div class="flex items-center justify-between">
-                    <dt class="font-medium text-spotify-text-muted">ユニークアーティスト</dt>
-                    <dd class="text-lg font-semibold text-white">
-                      {{ uniqueArtistCount.toLocaleString() }}<span class="ml-1 text-xs">組</span>
-                    </dd>
-                  </div>
-                  <div class="flex items-center justify-between">
-                    <dt class="font-medium text-spotify-text-muted">読み込み済みファイル</dt>
-                    <dd class="text-lg font-semibold text-white">
-                      {{ dataSourceSummaries.length.toLocaleString() }}<span class="ml-1 text-xs">件</span>
-                    </dd>
-                  </div>
-                  <div class="flex flex-col gap-1">
-                    <dt class="text-xs font-semibold uppercase tracking-[0.2em] text-spotify-text-muted">
-                      データソース一覧
-                    </dt>
-                    <dd>
-                      <ul class="space-y-3">
-                        <li
-                          v-for="summary in dataSourceSummaries"
-                          :key="summary.sourcePath"
-                          class="rounded-lg border border-spotify-border/40 bg-spotify-dark p-3"
-                        >
-                          <p class="text-sm font-medium text-white">{{ summary.source }}</p>
-                          <p class="mt-1 text-xs text-spotify-text-muted">
-                            読み込み日時: {{ formatFileLoadedAt(summary.loadedAt) }} · {{ summary.itemCount.toLocaleString() }} 件
-                          </p>
-                        </li>
-                      </ul>
-                    </dd>
-                  </div>
-                </dl>
-              </article>
-
-              <div class="lg:col-span-2">
-                <TimeSeriesChart />
-              </div>
-            </section>
+            <TimeSeriesChart />
 
             <section class="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
               <ArtistRanking />
@@ -142,28 +97,6 @@ const { loadHistoryData } = useSpotifyData()
 
 const totalPlays = computed(() => rawData.value.length)
 
-const uniqueArtistCount = computed(() => {
-  const set = new Set<string>()
-  rawData.value.forEach((item) => {
-    const artist =
-      item.master_metadata_album_artist_name ??
-      item.episode_show_name ??
-      item.audiobook_title ??
-      'Unknown Artist'
-    set.add(artist)
-  })
-  return set.size
-})
-
-const dataSourceSummaries = computed(() =>
-  dataSources.value.map((source) => ({
-    source: source.source,
-    sourcePath: source.sourcePath,
-    itemCount: source.items.length,
-    loadedAt: source.loadedAt,
-  }))
-)
-
 const latestLoadedAt = computed(() => {
   if (!dataSources.value.length) {
     return null
@@ -190,12 +123,6 @@ const hasData = computed(() => totalPlays.value > 0)
 const loadingLabel = computed(() =>
   totalPlays.value ? 'データを再読み込み中…' : 'Spotify履歴データを読み込み中…'
 )
-
-const formatFileLoadedAt = (value: Date): string =>
-  new Intl.DateTimeFormat('ja-JP', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(value)
 
 const reload = async () => {
   if (isLoading.value) {
