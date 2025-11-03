@@ -16,6 +16,7 @@ import {
   LinearScale,
   TimeScale,
   CategoryScale,
+  LineController,
   Tooltip,
   Legend,
   Filler,
@@ -29,6 +30,7 @@ ChartJS.register(
   LinearScale,
   TimeScale,
   CategoryScale,
+  LineController,
   Tooltip,
   Legend,
   Filler

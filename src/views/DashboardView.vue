@@ -63,49 +63,60 @@
         </div>
 
         <template v-if="hasData">
-          <StatsOverview />
+          <div class="space-y-10">
+            <StatsOverview />
 
-          <TimeSeriesChart />
-
-          <div class="grid gap-6 lg:grid-cols-2">
-            <ArtistRanking />
-            <TrackRanking />
-          </div>
-
-          <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            <div class="rounded-xl border border-spotify-border bg-spotify-dark-secondary p-6 shadow-lg shadow-black/30">
-              <p class="text-xs font-semibold uppercase tracking-[0.3em] text-spotify-text-muted">ユニークアーティスト</p>
-              <p class="mt-3 text-4xl font-semibold text-white">
-                {{ uniqueArtistCount.toLocaleString() }}
-                <span class="ml-1 text-base font-normal text-spotify-text-secondary">組</span>
-              </p>
-            </div>
-          </div>
-
-          <div class="rounded-xl border border-spotify-border bg-spotify-dark-secondary p-6 shadow-lg shadow-black/30">
-            <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-              <div>
-                <h2 class="text-lg font-semibold text-white">読み込み済みデータソース</h2>
-                <p class="text-sm text-spotify-text-secondary">全{{ dataSourceSummaries.length }}ファイル</p>
-              </div>
-            </div>
-            <ul class="mt-6 space-y-4 text-sm">
-              <li
-                v-for="summary in dataSourceSummaries"
-                :key="summary.sourcePath"
-                class="flex flex-wrap items-start justify-between gap-4 rounded-lg border border-spotify-border/60 bg-spotify-dark p-4 transition hover:border-spotify-green/60"
+            <section class="grid gap-6 lg:grid-cols-3">
+              <article
+                class="rounded-2xl border border-spotify-border/70 bg-spotify-dark-secondary/80 p-6 text-white shadow-lg shadow-black/40 backdrop-blur-sm"
               >
-                <div>
-                  <p class="font-medium text-white">{{ summary.source }}</p>
-                  <p class="mt-1 text-xs text-spotify-text-muted">
-                    読み込み日時: {{ formatFileLoadedAt(summary.loadedAt) }}
-                  </p>
-                </div>
-                <span class="text-sm font-semibold text-spotify-text-secondary">
-                  {{ summary.itemCount.toLocaleString() }} 件
-                </span>
-              </li>
-            </ul>
+                <h2 class="text-sm font-semibold uppercase tracking-[0.3em] text-spotify-text-muted">
+                  ハイライト
+                </h2>
+                <dl class="mt-6 space-y-4 text-sm text-spotify-text-secondary">
+                  <div class="flex items-center justify-between">
+                    <dt class="font-medium text-spotify-text-muted">ユニークアーティスト</dt>
+                    <dd class="text-lg font-semibold text-white">
+                      {{ uniqueArtistCount.toLocaleString() }}<span class="ml-1 text-xs">組</span>
+                    </dd>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <dt class="font-medium text-spotify-text-muted">読み込み済みファイル</dt>
+                    <dd class="text-lg font-semibold text-white">
+                      {{ dataSourceSummaries.length.toLocaleString() }}<span class="ml-1 text-xs">件</span>
+                    </dd>
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <dt class="text-xs font-semibold uppercase tracking-[0.2em] text-spotify-text-muted">
+                      データソース一覧
+                    </dt>
+                    <dd>
+                      <ul class="space-y-3">
+                        <li
+                          v-for="summary in dataSourceSummaries"
+                          :key="summary.sourcePath"
+                          class="rounded-lg border border-spotify-border/40 bg-spotify-dark p-3"
+                        >
+                          <p class="text-sm font-medium text-white">{{ summary.source }}</p>
+                          <p class="mt-1 text-xs text-spotify-text-muted">
+                            読み込み日時: {{ formatFileLoadedAt(summary.loadedAt) }} · {{ summary.itemCount.toLocaleString() }} 件
+                          </p>
+                        </li>
+                      </ul>
+                    </dd>
+                  </div>
+                </dl>
+              </article>
+
+              <div class="lg:col-span-2">
+                <TimeSeriesChart />
+              </div>
+            </section>
+
+            <section class="grid gap-6 lg:grid-cols-2">
+              <ArtistRanking />
+              <TrackRanking />
+            </section>
           </div>
         </template>
       </section>

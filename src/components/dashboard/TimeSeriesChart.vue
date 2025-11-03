@@ -84,14 +84,16 @@ const chartData = computed<ChartData<'line'>>(() => {
       {
         label: datasetLabel,
         data: dataPoints,
-        tension: 0.35,
-        fill: true,
+        borderWidth: 2,
         borderColor: '#1DB954',
         backgroundColor: 'rgba(29, 185, 84, 0.15)',
         pointBackgroundColor: '#1DB954',
         pointBorderColor: '#121212',
         pointRadius: 3,
         pointHoverRadius: 5,
+        fill: true,
+        tension: 0.35,
+        type: 'line',
       },
     ],
   }
