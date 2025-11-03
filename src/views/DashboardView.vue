@@ -113,9 +113,10 @@
               </div>
             </section>
 
-            <section class="grid gap-6 lg:grid-cols-2">
+            <section class="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
               <ArtistRanking />
               <TrackRanking />
+              <GenreRanking />
             </section>
           </div>
         </template>
@@ -132,6 +133,7 @@ import StatsOverview from '@/components/dashboard/StatsOverview.vue'
 import ArtistRanking from '@/components/dashboard/ArtistRanking.vue'
 import TrackRanking from '@/components/dashboard/TrackRanking.vue'
 import TimeSeriesChart from '@/components/dashboard/TimeSeriesChart.vue'
+import GenreRanking from '@/components/dashboard/GenreRanking.vue'
 import { useDataStore } from '@/stores/dataStore'
 
 const dataStore = useDataStore()
