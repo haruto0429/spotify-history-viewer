@@ -65,6 +65,8 @@
         <template v-if="hasData">
           <StatsOverview />
 
+          <TimeSeriesChart />
+
           <div class="grid gap-6 lg:grid-cols-2">
             <ArtistRanking />
             <TrackRanking />
@@ -118,6 +120,7 @@ import { useSpotifyData } from '@/composables/useSpotifyData'
 import StatsOverview from '@/components/dashboard/StatsOverview.vue'
 import ArtistRanking from '@/components/dashboard/ArtistRanking.vue'
 import TrackRanking from '@/components/dashboard/TrackRanking.vue'
+import TimeSeriesChart from '@/components/dashboard/TimeSeriesChart.vue'
 import { useDataStore } from '@/stores/dataStore'
 
 const dataStore = useDataStore()
