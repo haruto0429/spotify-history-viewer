@@ -2,7 +2,7 @@
   <section
     class="rounded-2xl border border-spotify-border/70 bg-spotify-dark-secondary/80 p-6 shadow-lg shadow-black/40 backdrop-blur-sm"
   >
-    <header class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <header class="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-end md:justify-between">
       <div>
         <p class="text-xs font-semibold uppercase tracking-[0.3em] text-spotify-text-muted">
           Phase 1 · Track Ranking
@@ -13,7 +13,9 @@
         </p>
       </div>
 
-      <div class="flex flex-col items-start gap-3 text-xs font-semibold text-spotify-text-muted md:items-end">
+      <div
+        class="flex flex-col items-start gap-3 text-xs font-semibold text-spotify-text-muted md:ml-auto md:flex-row md:flex-wrap md:items-center md:justify-end"
+      >
         <span
           v-if="tracks.length"
           class="inline-flex items-center rounded-full border border-spotify-border/60 px-3 py-1 uppercase tracking-[0.3em]"
@@ -21,8 +23,12 @@
           Top {{ tracks.length }}
         </span>
 
-        <div class="flex flex-col gap-2 text-spotify-text-secondary sm:flex-row sm:items-center sm:justify-end sm:gap-3">
-          <div class="flex items-center gap-2 rounded-full border border-spotify-border/60 bg-spotify-dark p-1">
+        <div
+          class="flex w-full flex-col gap-2 text-spotify-text-secondary sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-3"
+        >
+          <div
+            class="flex flex-wrap items-center gap-2 rounded-full border border-spotify-border/60 bg-spotify-dark p-1"
+          >
             <button
               type="button"
               class="rounded-full px-3 py-1 transition"
@@ -55,7 +61,7 @@
             <label class="text-[10px] uppercase tracking-[0.2em] text-spotify-text-muted">Year</label>
             <select
               v-model="selectedYear"
-              class="rounded-full border border-spotify-border/60 bg-spotify-dark px-3 py-1 text-xs text-white focus:border-spotify-green/70 focus:outline-none"
+              class="min-w-[120px] rounded-full border border-spotify-border/60 bg-spotify-dark px-3 py-1 text-xs text-white focus:border-spotify-green/70 focus:outline-none"
             >
               <option v-for="year in availableYears" :key="year" :value="year">{{ year }}年</option>
             </select>
@@ -65,7 +71,7 @@
             <label class="text-[10px] uppercase tracking-[0.2em] text-spotify-text-muted">Month</label>
             <select
               v-model="selectedMonthKey"
-              class="rounded-full border border-spotify-border/60 bg-spotify-dark px-3 py-1 text-xs text-white focus:border-spotify-green/70 focus:outline-none"
+              class="min-w-[140px] rounded-full border border-spotify-border/60 bg-spotify-dark px-3 py-1 text-xs text-white focus:border-spotify-green/70 focus:outline-none"
             >
               <option
                 v-for="month in availableMonths"
