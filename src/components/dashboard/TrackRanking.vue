@@ -214,8 +214,40 @@ watch(availableMonths, (months) => {
   }
 })
 
+const getDefaultYear = (): number | null => {
+  const years = availableYears.value
+  if (!years.length) {
+    return null
+  }
+  const currentYear = new Date().getFullYear()
+  if (years.includes(currentYear)) {
+    return currentYear
+  }
+  return years[0]
+}
+
+const getDefaultMonthKey = (): string | null => {
+  const months = availableMonths.value
+  if (!months.length) {
+    return null
+  }
+  const now = new Date()
+  const key = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`
+  const hasCurrent = months.some((month) => month.value === key)
+  if (hasCurrent) {
+    return key
+  }
+  return months[0].value
+}
+
 const selectTimeframe = (next: Timeframe) => {
   selectedTimeframe.value = next
+
+  if (next === 'yearly') {
+    selectedYear.value = getDefaultYear()
+  } else if (next === 'monthly') {
+    selectedMonthKey.value = getDefaultMonthKey()
+  }
 }
 
 const filteredItems = computed<SpotifyHistoryItem[]>(() => {
