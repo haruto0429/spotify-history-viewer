@@ -92,6 +92,7 @@ export function useSpotifyData() {
             const historyData: SpotifyHistoryData = {
               items: normalized,
               source: toFileName(filePath),
+              sourcePath: filePath,
               loadedAt: new Date(),
             }
 

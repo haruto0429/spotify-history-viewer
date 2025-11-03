@@ -63,20 +63,9 @@
         </div>
 
         <template v-if="hasData">
-          <div class="grid gap-6 md:grid-cols-3">
-            <div class="rounded-xl border border-spotify-border bg-spotify-dark-secondary p-6 shadow-lg shadow-black/30">
-              <p class="text-xs font-semibold uppercase tracking-[0.3em] text-spotify-text-muted">総再生回数</p>
-              <p class="mt-3 text-4xl font-semibold text-white">
-                {{ totalPlays.toLocaleString() }}
-                <span class="ml-1 text-base font-normal text-spotify-text-secondary">回</span>
-              </p>
-            </div>
+          <StatsOverview />
 
-            <div class="rounded-xl border border-spotify-border bg-spotify-dark-secondary p-6 shadow-lg shadow-black/30">
-              <p class="text-xs font-semibold uppercase tracking-[0.3em] text-spotify-text-muted">総再生時間</p>
-              <p class="mt-3 text-3xl font-semibold text-white">{{ formattedTotalPlayTime }}</p>
-            </div>
-
+          <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             <div class="rounded-xl border border-spotify-border bg-spotify-dark-secondary p-6 shadow-lg shadow-black/30">
               <p class="text-xs font-semibold uppercase tracking-[0.3em] text-spotify-text-muted">ユニークアーティスト</p>
               <p class="mt-3 text-4xl font-semibold text-white">
@@ -96,7 +85,7 @@
             <ul class="mt-6 space-y-4 text-sm">
               <li
                 v-for="summary in dataSourceSummaries"
-                :key="summary.source"
+                :key="summary.sourcePath"
                 class="flex flex-wrap items-start justify-between gap-4 rounded-lg border border-spotify-border/60 bg-spotify-dark p-4 transition hover:border-spotify-green/60"
               >
                 <div>
@@ -121,30 +110,14 @@
 import { computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useSpotifyData } from '@/composables/useSpotifyData'
+import StatsOverview from '@/components/dashboard/StatsOverview.vue'
 import { useDataStore } from '@/stores/dataStore'
 
 const dataStore = useDataStore()
 const { rawData, dataSources, isLoading, error } = storeToRefs(dataStore)
 const { loadHistoryData } = useSpotifyData()
 
-const formatDuration = (ms: number): string => {
-  if (!ms || ms <= 0) {
-    return '0分'
-  }
-  const totalSeconds = Math.floor(ms / 1000)
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  if (hours === 0) {
-    return `${minutes}分`
-  }
-  return `${hours}時間${minutes.toString().padStart(2, '0')}分`
-}
-
 const totalPlays = computed(() => rawData.value.length)
-const totalPlayTimeMs = computed(() =>
-  rawData.value.reduce((acc, item) => acc + (item?.ms_played ?? 0), 0)
-)
-const formattedTotalPlayTime = computed(() => formatDuration(totalPlayTimeMs.value))
 
 const uniqueArtistCount = computed(() => {
   const set = new Set<string>()
@@ -162,6 +135,7 @@ const uniqueArtistCount = computed(() => {
 const dataSourceSummaries = computed(() =>
   dataSources.value.map((source) => ({
     source: source.source,
+    sourcePath: source.sourcePath,
     itemCount: source.items.length,
     loadedAt: source.loadedAt,
   }))
