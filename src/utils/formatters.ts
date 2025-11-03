@@ -47,4 +47,3 @@ export const formatDateRange = (start: Date, end: Date): string => {
   return `${startLabel} 〜 ${endLabel}`
 }
 
-
